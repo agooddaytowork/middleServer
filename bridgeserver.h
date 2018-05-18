@@ -6,6 +6,7 @@
 #include <QDebug>
 #include <QTcpSocket>
 #include <QDataStream>
+#include <QTimer>
 
 class bridgeServer: public QObject
 {
@@ -19,6 +20,7 @@ class bridgeServer: public QObject
     QDataStream in;
     bool m_isBusy;
     QList<QByteArray> inputBuffer;
+    QTimer* m_TimeOutTimer;
 
 private slots:
     void newConnectionHandler();

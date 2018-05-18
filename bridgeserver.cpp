@@ -1,10 +1,16 @@
 #include "bridgeserver.h"
-
-bridgeServer::bridgeServer(const int &port, QObject *parent): QObject(parent), m_ServerPOrt(port), m_bridgeServer(new QTcpServer(this)), m_isBusy(false)
+#define pollingInterval 200
+bridgeServer::bridgeServer(const int &port, QObject *parent): QObject(parent), m_ServerPOrt(port), m_bridgeServer(new QTcpServer(this)), m_isBusy(false), m_TimeOutTimer(new QTimer(this))
 {
     inputBuffer.clear();
     QObject::connect(m_bridgeServer,&QTcpServer::newConnection, this, &bridgeServer::newConnectionHandler);
     QObject::connect(this,SIGNAL(letWriteToUser(QByteArray)),this,SLOT(writeToUser(QByteArray)));
+
+    m_TimeOutTimer->setInterval(pollingInterval);
+    m_TimeOutTimer->setSingleShot(false);
+    QObject::connect(m_TimeOutTimer,&QTimer::timeout,this,&bridgeServer::readyReadHandler);
+
+
 }
 
 void bridgeServer::start()
@@ -12,6 +18,7 @@ void bridgeServer::start()
     if(m_bridgeServer->listen(QHostAddress(QHostAddress::Any),m_ServerPOrt))
     {
         qDebug() << "Server is listening on Port: " + QString::number(m_ServerPOrt);
+        m_TimeOutTimer->start();
     }
 
 }
