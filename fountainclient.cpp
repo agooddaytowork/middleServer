@@ -1,20 +1,27 @@
 #include "fountainclient.h"
 
-fountainClient::fountainClient(const QString &m_IP, const int &m_Port,QObject *parent):QObject(parent), m_fountainClient(new QTcpSocket(this)), m_IP(m_IP), m_Port(m_Port), m_isBusy(false), m_isConnected(false)
+#define timeOutInterval 200
+fountainClient::fountainClient(const QString &m_IP, const int &m_Port,QObject *parent):QObject(parent), m_fountainClient(new QTcpSocket(this)), m_IP(m_IP), m_Port(m_Port), m_isBusy(false), m_isConnected(false), m_TimeOutTimer(new QTimer(this))
 {
 
-        QObject::connect(m_fountainClient,SIGNAL(connected()),this,SLOT(connectedHandler()));
-        QObject::connect(m_fountainClient,SIGNAL(disconnected()),this,SLOT(disconnectedHandler()));
-        QObject::connect(m_fountainClient,SIGNAL(error(QAbstractSocket::SocketError)),this,SLOT(errorHandler(QAbstractSocket::SocketError)));
-        QObject::connect(m_fountainClient,SIGNAL(readyRead()),this,SLOT(readyReadHandler()));
-        QObject::connect(this,SIGNAL(letstWrite(QByteArray)),this,SLOT(write(QByteArray)));
+    QObject::connect(m_fountainClient,SIGNAL(connected()),this,SLOT(connectedHandler()));
+    QObject::connect(m_fountainClient,SIGNAL(disconnected()),this,SLOT(disconnectedHandler()));
+    QObject::connect(m_fountainClient,SIGNAL(error(QAbstractSocket::SocketError)),this,SLOT(errorHandler(QAbstractSocket::SocketError)));
+    QObject::connect(m_fountainClient,SIGNAL(readyRead()),this,SLOT(readyReadHandler()));
+    QObject::connect(this,SIGNAL(letstWrite(QByteArray)),this,SLOT(write(QByteArray)));
 
 
 
-        in.setDevice(m_fountainClient);
-        in.setVersion(QDataStream::Qt_5_8);
+    in.setDevice(m_fountainClient);
+    in.setVersion(QDataStream::Qt_5_8);
 
-        inputBuffer.clear();
+    inputBuffer.clear();
+
+    m_TimeOutTimer->setInterval(timeOutInterval);
+    m_TimeOutTimer->setSingleShot(false);
+
+    QObject::connect(m_TimeOutTimer,SIGNAL(timeout()),this,SLOT(readyReadHandler()));
+
 
 }
 
@@ -22,6 +29,7 @@ fountainClient::fountainClient(const QString &m_IP, const int &m_Port,QObject *p
 void fountainClient::start()
 {
     m_fountainClient->connectToHost(m_IP, m_Port);
+    m_TimeOutTimer->start();
 }
 
 void fountainClient::connectedHandler()
@@ -40,11 +48,12 @@ void fountainClient::connectedHandler()
 void fountainClient::disconnectedHandler()
 {
     m_isConnected = false;
+    m_TimeOutTimer->stop();
 }
 
 void fountainClient::errorHandler(QAbstractSocket::SocketError err)
 {
-
+    m_TimeOutTimer->stop();
     qDebug() << "Error handler: IP " + m_IP;
     switch (err) {
     case QAbstractSocket::ConnectionRefusedError:
@@ -55,7 +64,7 @@ void fountainClient::errorHandler(QAbstractSocket::SocketError err)
 
     case QAbstractSocket::RemoteHostClosedError:
         QTimer::singleShot(30000,this,&fountainClient::start);
-         qDebug() << "RemoteHostClosedError";
+        qDebug() << "RemoteHostClosedError";
 
         break;
     case QAbstractSocket::HostNotFoundError:
@@ -149,7 +158,7 @@ void fountainClient::write(const QByteArray &data)
         for(int i =0; i < inputBuffer.count();i++)
         {
             out << inputBuffer.at(i);
-             m_fountainClient->write(block);
+            m_fountainClient->write(block);
         }
 
         inputBuffer.clear();

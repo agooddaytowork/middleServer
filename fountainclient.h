@@ -24,6 +24,8 @@ class fountainClient : public QObject
     bool m_isBusy;
     bool m_isConnected;
 
+    QTimer* m_TimeOutTimer;
+
 
 private slots:
 
