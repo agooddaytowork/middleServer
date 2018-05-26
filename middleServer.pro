@@ -16,8 +16,10 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += main.cpp \
     fountainclient.cpp \
-    bridgeserver.cpp
+    bridgeserver.cpp \
+    tcppackager.cpp
 
 HEADERS += \
     fountainclient.h \
-    bridgeserver.h
+    bridgeserver.h \
+    tcppackager.h

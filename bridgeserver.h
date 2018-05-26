@@ -36,6 +36,15 @@ public slots:
 signals:
 
     void toFountainDevices(const QByteArray &data);
+    void toBox00(const QByteArray &data);
+    void toBox01(const QByteArray &data);
+    void toBox02(const QByteArray &data);
+    void toBox03(const QByteArray &data);
+    void toBox04(const QByteArray &data);
+    void toBox05(const QByteArray &data);
+    void toBox06(const QByteArray &data);
+    void toBox07(const QByteArray &data);
+
     void letWriteToUser(const QByteArray &data);
 
 

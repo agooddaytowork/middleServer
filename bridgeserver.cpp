@@ -1,4 +1,10 @@
 #include "bridgeserver.h"
+#include "tcppackager.h"
+#include <QJsonObject>
+#include <QJsonDocument>
+
+
+
 #define pollingInterval 200
 bridgeServer::bridgeServer(const int &port, QObject *parent): QObject(parent), m_ServerPOrt(port), m_bridgeServer(new QTcpServer(this)), m_isBusy(false), m_TimeOutTimer(new QTimer(this))
 {
@@ -58,7 +64,51 @@ void bridgeServer::readyReadHandler()
     in >> dataFromUser;
 
     if(!in.commitTransaction()) return;
-    emit toFountainDevices(dataFromUser);
+
+
+    if(tcpPackager::isPackageValid(dataFromUser))
+    {
+        QJsonObject dataFromUserJson = tcpPackager::packageToJson(dataFromUser);
+
+        if(dataFromUserJson.contains("BOXID"))
+        {
+            quint8 BOX_ID = (quint8) dataFromUserJson["BOXID"].toInt();
+
+            switch (BOX_ID) {
+            case 0:
+                emit toBox00(dataFromUser);
+                break;
+            case 1:
+                emit toBox01(dataFromUser);
+                break;
+            case 2:
+                emit toBox02(dataFromUser);
+                break;
+            case 3:
+                emit toBox03(dataFromUser);
+                break;
+            case 4:
+                emit toBox04(dataFromUser);
+                break;
+            case 5:
+                emit toBox05(dataFromUser);
+                break;
+            case 6:
+                emit toBox06(dataFromUser);
+                break;
+            case 7:
+                emit toBox07(dataFromUser);
+                break;
+            }
+        }
+        else
+        {
+            emit toFountainDevices(dataFromUser);
+        }
+    }
+
+
+
 
 }
 
@@ -66,7 +116,7 @@ void bridgeServer::clientDiskConnectedHandler()
 {
     if(auto client = dynamic_cast<QTcpSocket *>(sender()))
     {
-       bool status = false;
+        bool status = false;
         userList.removeOne(client);
 
         qDebug() << "Server Side remove disconnectedClient :" + status;
@@ -96,7 +146,7 @@ void bridgeServer::socketErrorHandler(QAbstractSocket::SocketError err)
         {
             userList.removeAll(client);
         }
-         qDebug() << "RemoteHostClosedError";
+        qDebug() << "RemoteHostClosedError";
 
         break;
     case QAbstractSocket::HostNotFoundError:
