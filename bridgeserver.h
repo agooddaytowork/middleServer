@@ -7,6 +7,7 @@
 #include <QTcpSocket>
 #include <QDataStream>
 #include <QTimer>
+#include "clienttcpsocket.h"
 
 class bridgeServer: public QObject
 {
@@ -21,6 +22,8 @@ class bridgeServer: public QObject
     bool m_isBusy;
     QList<QByteArray> inputBuffer;
     QTimer* m_TimeOutTimer;
+    QList<clientTcpSocket> clientList;
+    QString m_currentClientAddress;
 
 private slots:
     void newConnectionHandler();

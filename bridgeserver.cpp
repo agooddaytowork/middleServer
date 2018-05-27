@@ -6,7 +6,7 @@
 
 
 #define pollingInterval 200
-bridgeServer::bridgeServer(const int &port, QObject *parent): QObject(parent), m_ServerPOrt(port), m_bridgeServer(new QTcpServer(this)), m_isBusy(false), m_TimeOutTimer(new QTimer(this))
+bridgeServer::bridgeServer(const int &port, QObject *parent): QObject(parent), m_ServerPOrt(port), m_bridgeServer(new QTcpServer(this)), m_isBusy(false), m_TimeOutTimer(new QTimer(this)), m_currentClientAddress("")
 {
     inputBuffer.clear();
     QObject::connect(m_bridgeServer,&QTcpServer::newConnection, this, &bridgeServer::newConnectionHandler);
@@ -105,10 +105,74 @@ void bridgeServer::readyReadHandler()
         {
             emit toFountainDevices(dataFromUser);
         }
+
+        QString theCommand = dataFromUserJson["Command"].toString();
+
+         if(theCommand == "Disconnecting")
+        {
+
+             emit letWriteToUser(dataFromUser);
+//                sendTcpPackageToClients(requestFromClient);
+        }
+        else if(theCommand =="addNewClient")
+        {
+            bool clientExist = false;
+            if(clientList.count() != 0)
+            {
+                foreach (clientTcpSocket theClient, clientList) {
+                    if(theClient.getClientId() == dataFromUserJson["ClientId"].toString())
+                    {
+                        clientExist = true;
+                        theClient.m_clientSocket = theTCPClient;
+                    }
+                }
+            }
+            if(!clientExist)
+            {
+                clientTcpSocket aClient;
+
+                if(clientList.count() == 0) aClient.setIsControlling(true);
+
+                aClient.setClientId(dataFromUserJson["ClientId"].toString());
+                aClient.setClientType(dataFromUserJson["ClientType"].toInt());
+//                aClient.setClientAddress(m_currentClientAddress);
+                aClient.m_clientSocket = theTCPClient;
+                clientList.append(aClient);
+            }
+
+        }
+        else if(theCommand == "whoIsControlling")
+        {
+                foreach (clientTcpSocket theClient, clientList) {
+                    if(theClient.isControlling())
+                    {
+                        emit letWriteToUser(tcpPackager::AnswerWhoIsControlling(theClient.getClientId(), theClient.getClientType()));
+//                        sendTcpPackageToClients();
+
+                    }
+                }
+
+        }
+        else if(theCommand == "getControlPermission")
+        {
+            foreach (clientTcpSocket theClient, clientList) {
+
+                if(theClient.getClientId() == dataFromUserJson["ClientId"].toString())
+                {
+
+                    theClient.setIsControlling(true);
+                    emit letWriteToUser(tcpPackager::AnswerWhoIsControlling(theClient.getClientId(), theClient.getClientType()));
+//                     sendTcpPackageToClients();
+
+                }
+                else
+                {
+                    theClient.setIsControlling(false);
+                }
+            }
+        }
+
     }
-
-
-
 
 }
 
