@@ -6,6 +6,8 @@
 
 
 #define pollingInterval 200
+
+#define bridgeServerDebug (1)
 bridgeServer::bridgeServer(const int &port, QObject *parent): QObject(parent), m_ServerPOrt(port), m_bridgeServer(new QTcpServer(this)), m_isBusy(false), m_TimeOutTimer(new QTimer(this)), m_currentClientAddress("")
 {
     inputBuffer.clear();
@@ -108,6 +110,10 @@ void bridgeServer::readyReadHandler()
 
         QString theCommand = dataFromUserJson["Command"].toString();
 
+#if bridgeServerDebug
+
+        qDebug() << "The Command: " + theCommand;
+#endif
          if(theCommand == "Disconnecting")
         {
 
@@ -122,6 +128,10 @@ void bridgeServer::readyReadHandler()
                 foreach (clientTcpSocket theClient, clientList) {
                     if(theClient.getClientId() == dataFromUserJson["ClientId"].toString())
                     {
+#if bridgeServerDebug
+
+        qDebug() << "Client Exist";
+#endif
                         clientExist = true;
                         theClient.m_clientSocket = theTCPClient;
                     }
@@ -129,15 +139,23 @@ void bridgeServer::readyReadHandler()
             }
             if(!clientExist)
             {
+#if bridgeServerDebug
+
+        qDebug() << "Client Not exist";
+#endif
                 clientTcpSocket aClient;
 
                 if(clientList.count() == 0) aClient.setIsControlling(true);
 
                 aClient.setClientId(dataFromUserJson["ClientId"].toString());
                 aClient.setClientType(dataFromUserJson["ClientType"].toInt());
-//                aClient.setClientAddress(m_currentClientAddress);
+                aClient.setClientAddress(m_currentClientAddress);
                 aClient.m_clientSocket = theTCPClient;
                 clientList.append(aClient);
+#if bridgeServerDebug
+
+        qDebug() << "Add new client to list";
+#endif
             }
 
         }
@@ -146,9 +164,12 @@ void bridgeServer::readyReadHandler()
                 foreach (clientTcpSocket theClient, clientList) {
                     if(theClient.isControlling())
                     {
+#if bridgeServerDebug
+
+        qDebug() << "Found the controlling user";
+#endif
                         emit letWriteToUser(tcpPackager::AnswerWhoIsControlling(theClient.getClientId(), theClient.getClientType()));
 //                        sendTcpPackageToClients();
-
                     }
                 }
 
@@ -159,7 +180,10 @@ void bridgeServer::readyReadHandler()
 
                 if(theClient.getClientId() == dataFromUserJson["ClientId"].toString())
                 {
+#if bridgeServerDebug
 
+        qDebug() << "set new user for control permission";
+#endif
                     theClient.setIsControlling(true);
                     emit letWriteToUser(tcpPackager::AnswerWhoIsControlling(theClient.getClientId(), theClient.getClientType()));
 //                     sendTcpPackageToClients();
@@ -167,6 +191,10 @@ void bridgeServer::readyReadHandler()
                 }
                 else
                 {
+#if bridgeServerDebug
+
+        qDebug() << "UNset old user for control permission";
+#endif
                     theClient.setIsControlling(false);
                 }
             }
