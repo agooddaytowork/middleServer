@@ -155,6 +155,7 @@ void bridgeServer::readyReadHandler()
 #if bridgeServerDebug
 
         qDebug() << "Add new client to list";
+        qDebug() << "Client Count: " + QString::number(clientList.count());
 #endif
             }
 
@@ -183,6 +184,7 @@ void bridgeServer::readyReadHandler()
 #if bridgeServerDebug
 
         qDebug() << "set new user for control permission";
+        qDebug() << "client ID: " + dataFromUserJson["ClientId"].toString();
 #endif
                     theClient.setIsControlling(true);
                     emit letWriteToUser(tcpPackager::AnswerWhoIsControlling(theClient.getClientId(), theClient.getClientType()));
