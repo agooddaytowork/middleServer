@@ -171,7 +171,7 @@ QByteArray tcpPackager::AnswerWhoIsControlling(const QString &clientId, const in
     thePackage.insert("UUID", (QString) QCryptographicHash::hash(m_scecretKey + time, QCryptographicHash::Sha256));
     thePackage.insert("TimeStamp",QString::number(theTimeStamp) );
     thePackage.insert("Command", "whoIsControlling");
-    thePackage.insert("clientId", clientId);
+    thePackage.insert("ClientId", clientId);
     thePackage.insert("clientType", clientType);
     QJsonDocument aDocument(thePackage);
     return aDocument.toJson();

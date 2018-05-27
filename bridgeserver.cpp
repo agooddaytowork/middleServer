@@ -2,6 +2,8 @@
 #include "tcppackager.h"
 #include <QJsonObject>
 #include <QJsonDocument>
+#include <QTextCodec>
+#include "clienttcpsocket.h"
 
 
 
@@ -10,6 +12,7 @@
 #define bridgeServerDebug (1)
 bridgeServer::bridgeServer(const int &port, QObject *parent): QObject(parent), m_ServerPOrt(port), m_bridgeServer(new QTcpServer(this)), m_isBusy(false), m_TimeOutTimer(new QTimer(this)), m_currentClientAddress("")
 {
+    clientList.clear();
     inputBuffer.clear();
     QObject::connect(m_bridgeServer,&QTcpServer::newConnection, this, &bridgeServer::newConnectionHandler);
     QObject::connect(this,SIGNAL(letWriteToUser(QByteArray)),this,SLOT(writeToUser(QByteArray)));
