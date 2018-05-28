@@ -93,6 +93,7 @@ int main(int argc, char *argv[])
     thread05.start();
     thread06.start();
     thread07.start();
+    thread08.start();
     threadSever.start();
 
     return a.exec();
