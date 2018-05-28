@@ -104,6 +104,9 @@ void bridgeServer::readyReadHandler()
             case 7:
                 emit toBox07(dataFromUser);
                 break;
+            case 8:
+                emit toBox08(dataFromUser);
+                break;
             }
         }
         else

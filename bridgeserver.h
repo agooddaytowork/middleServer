@@ -47,6 +47,7 @@ signals:
     void toBox05(const QByteArray &data);
     void toBox06(const QByteArray &data);
     void toBox07(const QByteArray &data);
+    void toBox08(const QByteArray &data);
 
     void letWriteToUser(const QByteArray &data);
 
